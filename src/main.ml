@@ -37,7 +37,7 @@ let mode =
     DIncNat.run, Arg.info ["incnat"] ~doc
   in
   let addition =
-    let doc = "KMT THEORY of naturals with more predicates\npredicates: x>n, x<n; actions: inc(x), set(x,n)" in
+    let doc = "KMT THEORY of naturals with more predicates\npredicates: x>n, x<n; actions: inc(x,n)" in
     DAddition.run, Arg.info ["addition"] ~doc
   in
   let network =
