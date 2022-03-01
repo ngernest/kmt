@@ -15,17 +15,21 @@ In addition to providing an OCaml library for defining KMTs over your own theori
 The simplest way to play with KMT right away is to use Docker. From the repo, run:
 
 ```ShellSession
-$ docker build -t kmt .    # build KMT and run tests
+$ docker build -t kmt .    # build KMT, run tests and evaluation
 $ docker run -it kmt       # enter a shell
-opam@3ce9eaca9fb1:~/kmt$ kmt --boolean 'x=T' 'not x=F' 
+opam@3ce9eaca9fb1:~/kmt$kmt --boolean 'x=T' 'x=T + x=F;set(x,F);x=T' 
 [x=T parsed as x=T]
+nf time: 0.000003s
+lunf time: 0.000025s
+[x=T + x=F;set(x,F);x=T parsed as x=T + x=F;set(x,F)[1];x=T]
 nf time: 0.000004s
-lunf time: 0.000017s
-[not x=F parsed as x=T]
-nf time: 0.000002s
-lunf time: 0.000004s
+lunf time: 0.000006s
 [1 equivalence class]
 ```
+
+The message `1 equivalence class` indicates that all terms given as
+command-line arguments form a single equivalence class, i.e., the two
+terms are equivalent.
 
 Note that `3ce9eaca9fb1` will be replaced by some appropriate hash for the generated Docker image.
 
