@@ -16,17 +16,6 @@ module DProductAddition = Driver(Product(Boolean)(Addition))
 
 open Cmdliner
 
-let decision_procedure =
-  let normalization =
-    let doc = "select normalization/rewriting-based equivalence decision procedure (default)" in
-    Normalization, Arg.info ["norm"; "rewrite"; "normalization"] ~doc
-  in
-  let automata =
-    let doc = "select automata-based equivalence decision procedure" in
-    Automata, Arg.info ["auto"; "automata"] ~doc
-  in
-  Arg.(last & vflag_all [Normalization] [normalization; automata])
-   
 let mode =
   let boolean =
     let doc = "KMT THEORY of boolean (default)\npredicates: x=F, x=T; actions: set(x,T), set(x,F)" in
@@ -77,14 +66,14 @@ let setup_debugs srcs =
 
 let setup_debugs = Term.(const setup_debugs $ debugs)
                  
-let run dec mode args () () = mode dec args
+let run mode args () () = mode args
   
 let cmd =
   let doc = "compute equivalence classes for various KMT theories" in
-  Term.(const run $ decision_procedure $ mode $ args $ setup_log $ setup_debugs),
-  Term.info "kmt" ~version:"v0.1" ~exits:Term.default_exits ~doc
+  let info = Cmd.info "kmt" ~version:"v0.1" ~exits:Cmd.Exit.defaults ~doc in
+  Cmd.v info Term.(const run $ mode $ args $ setup_log $ setup_debugs)
   
-let main () = Term.(exit @@ eval cmd)
+let main () = exit (Cmd.eval cmd)
 
 ;;
 

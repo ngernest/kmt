@@ -3,12 +3,8 @@
  (action (copy %{exe:main.exe} %{target})))
 
 (rule
- (target eval)
- (action (copy %{exe:eval.exe} %{target})))
-
-(rule
- (target toggle)
- (action (copy %{exe:toggle.exe} %{target})))
+ (target run_eval)
+ (action (copy %{exe:run_eval.exe} %{target})))
 
 (rule
  (target test_equivalence)
@@ -28,16 +24,9 @@
  (flags -thread (-cclib -lstdc++)))
 
 (executable
- (name eval)
- (modules eval)
- (libraries z3 kmt ANSITerminal)
- (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord))             
- (flags -thread (-cclib -lstdc++)))
-
-(executable
- (name toggle)
- (modules toggle)
- (libraries z3 kmt ANSITerminal)
+ (name run_eval)
+ (modules run_eval)
+ (libraries z3 kmt ANSITerminal fmt fmt.cli fmt.tty logs logs.fmt logs.cli cmdliner)
  (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord))             
  (flags -thread (-cclib -lstdc++)))
 
@@ -58,10 +47,10 @@
 (library
  (name kmt)
  (wrapped false)
- (modules :standard \ main test_equivalence test_word eval toggle)
+ (modules :standard \ main test_equivalence test_word run_eval)
  (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord))             
  (libraries batteries str unix ANSITerminal fmt fmt.cli fmt.tty
-            alcotest logs logs.fmt logs.cli z3))
+            alcotest logs logs.fmt logs.cli cmdliner z3))
 
 (ocamllex lexer)             
 (ocamlyacc parser)

@@ -89,8 +89,6 @@ module rec Network : (THEORY with type A.t = field_val and type P.t = field_val)
     if equal_field_val a p then None 
     else Some p
 
-  let unbounded () = false
-
   let variable x = get_field x
 
   let variable_test x = get_field x

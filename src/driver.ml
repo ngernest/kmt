@@ -1,5 +1,4 @@
 open Kat
-open Automata
 open Decide
 open Common
    
@@ -10,11 +9,8 @@ let driver_log_src = Logs.Src.create "kmt.driver"
                        ~doc:"logs KMT equivalence class driver"
 module Log = (val Logs.src_log driver_log_src : Logs.LOG)
 
-type decision_procedure = Normalization | Automata
-           
 module Driver(T : THEORY) = struct
   module K = T.K
-  module A = Automata(K)
   module D = Decide(T)
 
   let parse_and_show (s: string) : K.Term.t =
@@ -36,15 +32,6 @@ module Driver(T : THEORY) = struct
     Log.app (fun m -> m "lunf time: %fs" lunf_time);
     flush stdout;
     xhat
-
-  let parse_automatize_and_show (s: string) : A.t =
-    let p = parse_and_show s in
-    
-    (* conversion to automaton *)
-    let (auto, auto_time) = time A.of_term p in
-    Log.info (fun m ->  m "%s" (A.to_string auto));
-    Log.app (fun m -> m "time: %fs" auto_time);
-    auto
     
   let show_equivalence_classes (eq_dec: 'a -> 'a -> bool) (show: 'a -> string) (ps: 'a list) =
     let eqs = equivalence_classes eq_dec ps in
@@ -62,14 +49,12 @@ module Driver(T : THEORY) = struct
                      (List.fold_left
                         (fun acc x -> show x ^ Common.add_sep "; " acc) "" cls)))
     
-  let run dec ss =
+  let run ss =
     let go parse eq_dec show ss =
       let xs = List.map parse ss in
       if List.length xs > 1
       then show_equivalence_classes eq_dec show xs
     in
-    match dec with
-    | Normalization -> go parse_normalize_and_show D.equivalent_lunf D.show_nf ss
-    | Automata -> go parse_automatize_and_show A.equivalent A.to_string ss
+    go parse_normalize_and_show D.equivalent_lunf D.show_nf ss
        
 end

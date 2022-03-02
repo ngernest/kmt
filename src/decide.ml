@@ -1,7 +1,6 @@
 open Kat
 open BatSet
 open Hashcons
-open Automata
 open Word
 
 (* Decision procedure based on rewriting via normalization *)
@@ -253,8 +252,6 @@ module Decide (T : THEORY) = struct
         if PSet.is_empty y then
           if a.node == One then (* some weird optimization? MMG *) begin
               Log.debug (fun m -> m "%sHit a.node = One optimization" (spaces i));
-            (* MMG 2020-03-25 dropping speculative code for non-tracing semantics *)
-            (*            if K.unbounded () || true then *)
               let term =
                 PSet.fold
                   (fun (_test, term) acc -> K.par acc term)
@@ -262,13 +259,6 @@ module Decide (T : THEORY) = struct
                   (K.pred (K.zero ()))
               in
               singleton (a, K.star term)
-(*            else
-              let nf, b, k = fix (i + 1) x in
-              let nf_b = repeatSeq (i + 1) x b in
-              let nf_k = repeatSeq (i + 1) x k in
-              let all = push_back_j (i + 1) nf_b nf_k in
-              let all = push_back_j (i + 1) all nf in
-              PSet.add (a, K.pred one) all *)
             end
           else
             let y = push_back_t (i + 1) x a in
@@ -485,22 +475,7 @@ module Decide (T : THEORY) = struct
         false
       end
 
-  module A = Automata(K)
-    
-  let same_actions_automata (m: K.Term.t) (n: K.Term.t) : bool =
-    if m.tag = n.tag
-    then begin
-        Log.debug (fun m -> m "same_action = true (same tag)");
-        true
-      end
-    else begin
-        let a1 = A.of_term m in
-        let a2 = A.of_term n in
-        let same_actions = A.equivalent a1 a2 in
-        Log.debug (fun m -> m "same_actions = %b" same_actions);
-        same_actions
-      end
-    
+   
   (* ACTUAL EQUIVALENCE ROUTINE STARTS HERE *)
     
   let equivalent_lunf (xhat: lunf) (yhat: lunf) : bool =

@@ -152,8 +152,6 @@ module Product(T1 : THEORY) (T2: THEORY) : (THEORY with type A.t = (T1.A.t, T2.A
       | Left x -> T1.variable_test x 
       | Right y -> T2.variable_test y
 
-    let unbounded () = T1.unbounded() || T2.unbounded()
-  
     let rec only_left (a : K.Test.t) : bool = 
       match a.node with 
       | Zero | One | Theory (Left _) -> true

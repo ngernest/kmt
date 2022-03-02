@@ -42,8 +42,8 @@ jobs:
       - name: OCaml dependencies
         run: opam install -y ocamlfind ppx_deriving batteries ANSIterminal fmt alcotest cmdliner logs zarith z3 dune
         
-      - name: Build kmt
-        run: opam exec -- dune build -- src/kmt
+      - name: Build kmt and other executables
+        run: opam exec -- dune build --display short -- src/kmt src/test_word src/test_equivalence src/run_eval
 
       - name: Word equivalence tests
         run: opam exec -- dune exec -- src/test_word
@@ -52,7 +52,7 @@ jobs:
         run: opam exec -- dune exec -- src/test_equivalence
 
       - name: KMT evaluation
-        run: opam exec -- dune exec -- src/eval
+        run: opam exec -- dune exec -- src/run_eval
 
   docker:
     runs-on: ubuntu-latest

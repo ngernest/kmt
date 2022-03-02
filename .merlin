@@ -1,3 +1,0 @@
-S src
-B _build/src
-PKG batteries ppx_deriving.std str unix ANSITerminal Z3

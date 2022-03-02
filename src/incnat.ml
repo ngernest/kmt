@@ -95,8 +95,6 @@ module rec IncNat : THEORY with type A.t = a and type P.t = p = struct
 
   let reduce _a p = Some p
 
-  let unbounded () = true
-
   let create_z3_var (str,_a) (ctx : Z3.context) (solver : Z3.Solver.solver) : Z3.Expr.expr = 
     let sym = Z3.Symbol.mk_string ctx str in
     let int_sort = Z3.Arithmetic.Integer.mk_sort ctx in

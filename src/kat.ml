@@ -39,7 +39,6 @@ module type KAT_IMPL = sig
   val push_back_test : P.t -> Test.t -> Test.t BatSet.PSet.t
   val satisfiable : Test.t -> bool
   val z3_satisfiable : Test.t -> bool
-  val unbounded : unit -> bool
   val implies : Test.t -> Test.t -> bool
 
   (* Smart constructors *)
@@ -91,7 +90,6 @@ module type THEORY = sig
   val reduce : A.t -> P.t -> P.t option
   val variable : P.t -> string
   val variable_test : A.t -> string
-  val unbounded : unit -> bool
   val satisfiable : Test.t -> bool
   val create_z3_var: string * A.t -> Z3.context -> Z3.Solver.solver -> Z3.Expr.expr
   val theory_to_z3_expr: A.t -> Z3.context -> Z3.Expr.expr StrMap.t -> Z3.Expr.expr
@@ -434,8 +432,6 @@ module KAT (T : THEORY) : KAT_IMPL with module A = T.A and module P = T.P = stru
     let status = Solver.check solver [] in
     Solver.reset solver ;
     status = Solver.SATISFIABLE
-
-  let unbounded () = T.unbounded ()
 
   let implies (a: Test.t) (b: Test.t) : bool =
     let x = pseq a (not b) in

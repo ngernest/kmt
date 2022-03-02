@@ -91,8 +91,6 @@ module rec Boolean : THEORY with type A.t = a and type P.t = p = struct
 
   let reduce _a p = Some p
 
-  let unbounded () = false
-
   let theory_to_z3_expr (a : A.t) (ctx : Z3.context) (map : Z3.Expr.expr StrMap.t) = 
     match a with Bool (x, v) ->
     let var = StrMap.find x map in

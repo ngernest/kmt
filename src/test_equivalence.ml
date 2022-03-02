@@ -4,18 +4,13 @@ open Incnat
 open Addition
 open Boolean
 open Product
-open Automata
 open Decide
-
-type mode = Normalization | Automata
 
 module type TESTER =
   functor (T : THEORY) ->
   sig
     type t = string
 
-    val mode : mode
-           
     val pp : t Fmt.t
 
     val equal : t -> t -> bool
@@ -26,38 +21,11 @@ module type TESTER =
                                 string -> string -> string -> unit Alcotest.test_case
   end
 
-module AutomataTester(T : THEORY) = struct
-  module K = T.K
-  module A = Automata(K)
-
-  type t = string
-
-  let mode = Automata
-         
-  let pp = Fmt.string
-         
-  let equal s1 s2 =          
-    let x = K.parse s1 in 
-    let y = K.parse s2 in 
-    let a1 = A.of_term x in 
-    let a2 = A.of_term y in 
-    A.equivalent a1 a2
-
-  let equivalent : string Alcotest.testable = Alcotest.testable pp equal
-
-  let assert_equivalent ?speed:(speed=`Quick) name l r =
-    Alcotest.test_case name speed (fun () -> Alcotest.(check equivalent) "equivalent" l r)
-  let assert_not_equivalent ?speed:(speed=`Quick) name l r =
-    Alcotest.test_case name speed (fun () -> Alcotest.(check (Alcotest.neg equivalent)) "inequivalent" l r)
-end
-
 module NormalizationTester(T : THEORY) = struct
   module K = T.K
   module D = Decide(T)
 
   type t = string
-
-  let mode = Normalization
 
   let pp = Fmt.string
 
@@ -183,14 +151,11 @@ module TestIncNat (T : TESTER) = struct
          "set(x,5)";
       assert_not_equivalent "tracing" 
          "(inc(x))*;set(x,0)"
-         "set(x,0)"]
-    @ if mode = Automata
-      then [] (* BUG MMG 2020-03-30 *)
-      else [ 
-          assert_equivalent "x>3;not (x>2) = false (regression)"
-            "x>3; not (x>2)"
-            "false"
-        ]
+         "set(x,0)";
+      assert_equivalent "x>3;not (x>2) = false (regression)"
+        "x>3; not (x>2)"
+        "false"
+    ]
 end
 
 module TestBoolean (T : TESTER) = struct
@@ -233,13 +198,11 @@ module TestBoolean (T : TESTER) = struct
         "(a=T;a=T)* + a=T;(a=T;a=T)*";
       assert_equivalent "toggle star"
         "(set(x,T) + set(y,T) + set(x,F) + set(y,T))*"
-        "(set(x,F) + set(y,T) + set(x,T) + set(y,T))*"
-    ] @ (if mode = Automata
-         then [] (* just way, way too slow *)
-         else [ assert_equivalent "tree ordering"
-                  "set(w,F); set(x,T); set(y,F); set(z,F); ((w=T + x=T + y=T + z=T); set(a,T) + (not (w=T + x=T + y=T + z=T)); set(a,F))"
-                  "set(w,F); set(x,T); set(y,F); set(z,F); (((w=T + x=T) + (y=T + z=T)); set(a,T) + (not ((w=T + x=T) + (y=T + z=T))); set(a,F))"
-           ])
+        "(set(x,F) + set(y,T) + set(x,T) + set(y,T))*";
+      assert_equivalent "tree ordering"
+        "set(w,F); set(x,T); set(y,F); set(z,F); ((w=T + x=T + y=T + z=T); set(a,T) + (not (w=T + x=T + y=T + z=T)); set(a,F))"
+        "set(w,F); set(x,T); set(y,F); set(z,F); (((w=T + x=T) + (y=T + z=T)); set(a,T) + (not ((w=T + x=T) + (y=T + z=T))); set(a,F))"
+    ]
 
   let denesting_tests =
     ["x=F;set(x,T)"; "y=F;set(y,T)"; "x=T;set(x,F)"; "y=T;set(y,F)"]
@@ -254,8 +217,6 @@ module TestProduct (T : TESTER) = struct
   module TP = T(Product(Addition)(Boolean))
   open TP
 
-  let slow = if mode = Automata then `Slow else `Quick
-     
   let tests =
     [ assert_equivalent "actions parse"
         "set(x,T); x=T; inc(y,1)"
@@ -266,36 +227,29 @@ module TestProduct (T : TESTER) = struct
       assert_equivalent  "population count"
         "y<1; (a=F + a=T; inc(y,1)); y > 0"
         "y<1; a=T; inc(y,1)";
-      assert_not_equivalent ~speed:slow "population count 2"
+      assert_not_equivalent "population count 2"
         "y<1; (a=F + a=T; inc(y,1))"
         "a=T; inc(y,1)";
-      assert_equivalent ~speed:slow "population count 3"
+      assert_equivalent "population count 3"
         "y<1; (true + a=T; inc(y,1)); (true + b=T; inc(y,1)); (true + c=T; inc(y,1)); y>2"      
         "y<1; a=T; b=T; c=T; inc(y,1); inc(y,1); inc(y,1)";
-      assert_equivalent ~speed:slow "population count 3 (variant)"
+      assert_equivalent"population count 3 (variant)"
         "y<1; (a=F + a=T; inc(y,1)); (b=F + b=T; inc(y,1)); (c=F + c=T; inc(y,1)); y>2"
-        "y<1; a=T; b=T; c=T; inc(y,1); inc(y,1); inc(y,1)"
-    ] @ if mode = Automata
-        then [] (* BUG MMG 2020-03-30 *)
-        else [
-            assert_not_equivalent "population count: mismatched domain (regression)"
-              "y<1; (a=F + a=T; inc(y,1)); not (y < 1)"
-              "a=T;inc(y,1)"
-          ]
+        "y<1; a=T; b=T; c=T; inc(y,1); inc(y,1); inc(y,1)";
+      assert_not_equivalent "population count: mismatched domain (regression)"
+        "y<1; (a=F + a=T; inc(y,1)); not (y < 1)"
+        "a=T;inc(y,1)"
+    ]
                                             
 end
                                 
 module TestAdditionNormalization = TestAddition(NormalizationTester)
-module TestAdditionAutomata = TestAddition(AutomataTester)
 
 module TestIncNatNormalization = TestIncNat(NormalizationTester)
-module TestIncNatAutomata = TestIncNat(AutomataTester)
 
 module TestBooleanNormalization = TestBoolean(NormalizationTester)
-module TestBooleanAutomata = TestBoolean(AutomataTester)
 
 module TestProductNormalization = TestProduct(NormalizationTester)
-module TestProductAutomata = TestProduct(AutomataTester)
                            
 let main () =
   Alcotest.run "equivalence" [
@@ -303,14 +257,8 @@ let main () =
     ; "incnat normalization", TestIncNatNormalization.tests
     ; "boolean normalization", TestBooleanNormalization.tests
     ; "product normalization", TestProductNormalization.tests
-    ; "addition automata", TestAdditionAutomata.tests
-    ; "incnat automata", TestIncNatAutomata.tests
-    ; "boolean automata", TestBooleanAutomata.tests
-    ; "product automata", TestProductAutomata.tests
     ; "denesting normalization",
       TestBooleanNormalization.denesting_tests
-    ; "denesting automata",
-      TestBooleanAutomata.denesting_tests
     ]
 ;;
 

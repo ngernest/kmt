@@ -182,7 +182,9 @@ let timeout limit f x =
   then
     begin
       (* child *)
-      ignore (Unix.alarm limit);
+      begin
+        if limit > 0 then ignore (Unix.alarm limit)
+      end;
       let start = Sys.time () in
       ignore (Sys.opaque_identity (f x));
       let finish = Sys.time () in
