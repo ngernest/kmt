@@ -1,5 +1,6 @@
 FROM ocaml/opam
 
+RUN sudo apt-get update # lolsob
 RUN sudo apt-get install -y libgmp-dev python3
 
 RUN opam install ocamlfind ppx_deriving batteries
