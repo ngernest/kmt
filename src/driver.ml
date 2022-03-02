@@ -19,7 +19,7 @@ module Driver(T : THEORY) = struct
     Log.app (fun m -> m "[%s parsed as %s]" s (K.Term.show p));
     p
            
-  let parse_normalize_and_show (s: string) : D.lunf =
+  let parse_normalize_and_show (s: string) : string * D.lunf =
     let p = parse_and_show s in
     
     (* normalization and lunf *)
@@ -31,7 +31,7 @@ module Driver(T : THEORY) = struct
     Log.info (fun m -> m "lunf = %s" (D.show_nf xhat));
     Log.app (fun m -> m "lunf time: %fs" lunf_time);
     flush stdout;
-    xhat
+    (s, xhat)
     
   let show_equivalence_classes (eq_dec: 'a -> 'a -> bool) (show: 'a -> string) (ps: 'a list) =
     let eqs = equivalence_classes eq_dec ps in
@@ -44,10 +44,10 @@ module Driver(T : THEORY) = struct
     (* classes *)
     eqs |> List.iteri
              (fun i cls ->
-               Log.info (fun m ->
-                   m "%d: %s" (i+1)
+               Log.app (fun m ->
+                   m "%d: { %s }" (i+1)
                      (List.fold_left
-                        (fun acc x -> show x ^ Common.add_sep "; " acc) "" cls)))
+                        (fun acc x -> show x ^ Common.add_sep ", " acc) "" cls)))
     
   let run ss =
     let go parse eq_dec show ss =
@@ -55,6 +55,6 @@ module Driver(T : THEORY) = struct
       if List.length xs > 1
       then show_equivalence_classes eq_dec show xs
     in
-    go parse_normalize_and_show D.equivalent_lunf D.show_nf ss
+    go parse_normalize_and_show (fun x y -> D.equivalent_lunf (snd x) (snd y)) (fun x -> fst x) ss
        
 end

@@ -14,15 +14,6 @@ You can build a Docker container from the root of the repo:
 
 ```ShellSession
 $ docker build -t kmt .    # build KMT, run tests and evaluation
-$ docker run -it kmt       # enter a shell
-opam@3ce9eaca9fb1:~/kmt$ kmt --boolean 'x=T' 'x=T + x=F;set(x,F);x=T' 
-[x=T parsed as x=T]
-nf time: 0.000003s
-lunf time: 0.000025s
-[x=T + x=F;set(x,F);x=T parsed as x=T + x=F;set(x,F)[1];x=T]
-nf time: 0.000004s
-lunf time: 0.000006s
-[1 equivalence class]
 ```
 
 If your `docker build` command exits with status 137, that indicates
@@ -30,9 +21,39 @@ that the build ran out of memory (typically when building Z3). We find
 that 12GB of RAM is sufficient, but more may be necessary on your
 machine.
 
+Building the image will automatically run unit tests as well as the
+PLDI 2022 evaluation. When running the image, you can use the `kmt`
+executable to test equivalence of various terms directly:
+
+```ShellSession
+$ docker run -it kmt       # enter a shell
+opam@b3043b7dca44:~/kmt$ kmt --boolean 'x=T' 'x=T + x=F;set(x,F);x=T'
+[x=T parsed as x=T]
+nf time: 0.000004s
+lunf time: 0.000022s
+[x=T + x=F;set(x,F);x=T parsed as x=T + x=F;set(x,F)[1];x=T]
+nf time: 0.000008s
+lunf time: 0.000006s
+[1 equivalence class]
+1: { x=T + x=F;set(x,F);x=T, x=T }
+```
+
 The message `1 equivalence class` indicates that all terms given as
 command-line arguments form a single equivalence class, i.e., the two
-terms are equivalent.
+terms are equivalent. Each equivalence class is printed after:
+
+```ShellSession
+opam@b3043b7dca44:~/kmt$ kmt --boolean 'x=T' 'x=T + x=F;set(x,T)'
+[x=T parsed as x=T]
+nf time: 0.000003s
+lunf time: 0.000016s
+[x=T + x=F;set(x,T) parsed as x=T + x=F;set(x,T)[1]]
+nf time: 0.000007s
+lunf time: 0.000010s
+[2 equivalence classes]
+1: { x=T + x=F;set(x,T) }
+2: { x=T }
+```
 
 Note that `3ce9eaca9fb1` will be replaced by some appropriate hash for
 the generated Docker image. The `kmt` executable will be in
