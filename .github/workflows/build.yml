@@ -21,10 +21,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Ensure `apt` is up to date
-        run: sudo apt-get update
-        if: contains(matrix.os, 'ubuntu')
           
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: avsm/setup-ocaml@v2
