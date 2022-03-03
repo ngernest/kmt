@@ -135,16 +135,25 @@ Whitespace is ignored, and comments are written with `/* ... */`.
 ### Theory-specific forms
 
 On its own, the Kleene algebra with tests above doesn't let you
-express any interesting programs. KMT builds a concrete KAT around a
-_theory_. Many are predefined.
+express any interesting programs: we need a notion of concrete
+predicates and actions. KMT builds a concrete KAT around a _theory_,
+which defines a predicates and actions. Our implementation has several
+predefined, and [the library itself lets you define new theories](#what-do-I-have-to-provide-to-write-my-own-theory).
 
-In general, theories add predicates and actions of the form
-`NAME(ARGS,...)` and `ARG1 OP ARG2` . Each theory specificies its own
-language.
+Theories add predicates and actions of the form `NAME(ARGS,...)` and
+`ARG1 OP ARG2`. Each theory specificies its own language: an `ARG`
+will be a variable or a theory-specific constant of some kind; `NAME`
+will be a conventional function symbol name, like `set`; `OP` takes a
+variety of forms, like `<` or `=`.
 
 #### Booleans
 
-You can use the booleans by specifying `--boolean` on the `kmt` command line. It is the default theory, so you can also leave it off. The theory of booleans adds two forms, where `x` and `y` are variables:
+You can use the booleans by specifying `--boolean` on the `kmt`
+command line. It is the default theory, so you can also leave it
+off. The theory of booleans adds two forms, where `x` and `y` are
+variables. We write `T` and `F` for the boolean _values_ true and
+false, which should not be confused with the KAT terms `true` and
+`false`.
 
   - `x=T` and `y=F` are tests that are true when `x` is true and `y`
     is false, respectively
@@ -154,12 +163,12 @@ You can use the booleans by specifying `--boolean` on the `kmt` command line. It
 #### Monotonic naturals
 
 You can use the monotonically increasing naturals by specifying
-`--kmt` on the command line. Monotonic naturals have several
+`--incnat` on the command line. Monotonic naturals have several
 theory-specific forms, where variables `x`, `y`, and `z` range over
 natural numbers; we write `n` to mean a _constant_ natural number.
 
   - `x > n` is a test that is true when the variable `x`'s value is greater than `n`
-  - `inc(y)` is an action increments the variable `y`
+  - `inc(y)` is an action that increments the variable `y`
   - `set(z, n)` is an action that sets the variable `z` to `n`
   
 #### Other theories
@@ -174,10 +183,43 @@ We have several other theories built in:
   - `--product-addition` is a product theory of booleans and the
     `--addition` theory of naturals
 
-You can add new theories to the `kmt` tool by updating the `modes` in
-`src/main.ml`.
+You can [add new
+theories](#what-do-I-have-to-provide-to-write-my-own-theory) to the
+`kmt` tool by updating the `modes` in `src/main.ml`.
 
 # Step-by-Step
+
+The paper makes several claims about the implementation.
+
+ 1. It is extensible.
+ 2. The benchmarks according to our evaluation in Section 5.
+ 
+## How can I tell that the implementation is extensible?
+
+Look at `src/kat.ml`. It defines several modules.
+
+ - The `KAT_IMPL` signature characterizes what a KAT has. Here `A` is
+   for theory tests and `P` is for theory actions. (The `Test` and
+   `Term` modules are for defining comparison and hashing operations
+   on the hashconsed KMT terms.)
+ - The `THEORY` signature characterizes what a client theory must
+   define to generate a KMT.
+ - The `KAT` module is a functor that takes a `THEORY` and produces a
+   `KAT_IMPL`.
+   
+That is, we use OCaml functors to transform a `THEORY` into a `KAT`.
+
+You can see this process in action in `src/boolean.ml`. After some
+base definitions (outside the module to simplify things), we define
+the module `Boolean` recursively as a `THEORY`... where we use `K =
+KAT (Boolean)` inside our definition. That is, `Boolean.K` is the KMT
+over booleans. You can see that there is very little boilerplate:
+parsing is just a few lines; we define `push_back` in just a few
+lines. The satisfiability checker is somewhat complicated by our use
+of a 'fast' path in the `satisfiable` function, where we discharge
+simple queries (with just conjunction and negation of theory
+predicates, but no disjunction---see `can_use_fast_solver`) without
+calling Z3 at all.
 
 ## How do I reproduce the paper's evaluation?
 
@@ -238,13 +280,14 @@ KMT. Namely:
   - LTLf is not implemented, and neither is Temporal NetKAT. (But the
     [PLDI 2016 implementation is available on
     GitHub](https://github.com/rabeckett/Temporal-NetKAT).)
+  - Sets and maps are not implemented.
 
 ## Building locally
 
 The simplest way to play with KMT right away is to [use
 Docker](#how-do-i-build-it). If for some reason you would prefer to
-run KMT on your own machine, run the following commands from a clone
-of the repo. Here's a manual install script for Linux:
+run KMT on your own Linux machine, run the following commands from a clone
+of the repo:
 
 ```ShellSession
 $ sudo apt-get install -y libgmp-dev python3
@@ -254,6 +297,9 @@ $ dune build -- src/kmt      # build the CLI
 $ dune test                  # unit tests on regex word equivalence and KMT equivalence
 $ dune exec -- src/run_eval  # PLDI2022 eval
 ```
+
+On macOS, you a `brew install gmp python3 ; sudo mkdir -p
+/opt/local/lib` should replace the first line.
 
 If the above fails, the CI automation is a good guide for manual installation: see the `Dockerfile` and `.github/workflows/build.yml`.
 
@@ -276,9 +322,9 @@ Note that `incnat.ml`'s theory solver in `satisfiable` has two cases: a fast pat
 
 ### Which example theories should I look at first?
 
-Check out `src/incnat.ml` for a simple language with increment and assignment operations. It defines types `a` and `p` for the primitive parts of the language (one predicate, which tests whether a variable is greater than a number, and two actions, which increment and set variables).
-
 The code in `src/boolean.ml` is for a simple language with boolean-valued variables.
+
+Check out `src/incnat.ml` for a simple language with increment and assignment operations. It defines types `a` and `p` for the primitive parts of the language (one predicate, which tests whether a variable is greater than a number, and two actions, which increment and set variables).
 
 The code in `src/product.ml` is for a _higher-order theory_, combining
 two theories into one. You can see it in action using the `--product`
@@ -287,3 +333,82 @@ and `--product-addition` flags for KMT.
 ## How is equivalence decided?
 
 We decide equivalence via _normalization_. We convert KMT terms to a normal form using the novel `push_back` operation; to compare two such normal forms, we disambiguate the tests and compare the terms pointwise. When this procedure is fast, it's _quite_ fast... but deeply nested loops or loops with lots of conditionals slow it down severely.
+
+In more detail, see `src/decide.ml`. The top-level function is:
+
+```OCaml
+let equivalent (p: K.Term.t) (q: K.Term.t) : bool =
+  let nx = normalize_term 0 p in
+  let ny = normalize_term 0 q in
+  equivalent_nf nx ny
+```
+
+That is, we normalize and then compare normal forms.
+
+```OCaml
+let equivalent_nf (nx: nf) (ny: nf) : bool =
+  (* optimization: just if syntactically equal first *)
+  if PSet.equal nx ny
+  then
+    begin
+      Log.debug (fun m -> m "syntactic equality on %s" (show_nf nx));
+      true
+    end
+  else begin
+      Log.debug (fun m -> m
+                         "running cross product on %s and %s"
+                         (show_nf nx) (show_nf ny));
+      let xhat = locally_unambiguous_form nx in
+      Log.debug (fun m -> m "%s is locally unambiguous as %s" (show_nf nx) (show_nf xhat));
+      let yhat = locally_unambiguous_form ny in
+      Log.debug (fun m -> m "%s is locally unambiguous as %s" (show_nf ny) (show_nf yhat));
+      equivalent_lunf xhat yhat
+  end
+```
+
+It may be easier to understand without the logging/optimization:
+
+```OCaml
+let equivalent_nf (nx: nf) (ny: nf) : bool =
+  let xhat = locally_unambiguous_form nx in
+  let yhat = locally_unambiguous_form ny in
+  equivalent_lunf xhat yhat
+```
+
+Given normal forms `nx` and `ny`, we (a) compute locally unambiguous
+forms `xhat` and `yhat`; we then check _those_ for equivalence.
+
+To generate locally unambiguous forms, suppose the normal form `nx` is
+equal to `a1;m1 + a2;m2 + ... + an;mj`. We generate `xhat` by
+considering every possibly combination of the tests `ai`, which
+engender every possibly combination of the actions `mi`. That is:
+
+```
+xhat =     a1 ;     a2 ; ... ;     aj ; (m1 + m2 + ... + mj)
+     + not a1 ;     a2 ; ... ;     aj ; (     m2 + ... + mj)
+     +     a1 ; not a2 ; ... ;     aj ; (m1 +      ... + mj)
+     + ...                         
+     + not a1 ; not a2 ; ... ;     aj ; (                mj)
+     + not a1 ; not a2 ; ... ; not aj ; false
+```
+
+We build `yhat` from `y = b1;n1 + ... + bk;nk` similarly:
+
+```
+yhat =     b1 ;     b2 ; ... ;     bk ; (n1 + n2 + ... + nk)
+     + not b1 ;     b2 ; ... ;     bk ; (     n2 + ... + nk)
+     +     b1 ; not b2 ; ... ;     bk ; (n1 +      ... + nk)
+     + ...                         
+     + not b1 ; not b2 ; ... ;     bk ; (                nk)
+     + not b1 ; not b2 ; ... ; not bk ; false
+```
+
+We call this `hat`ted forms "locally unambiguous" because each possible test in `xhat` is syntactically unambiguous.
+
+Now we can compare `xhat` and `yhat` (in `equivalent_lunf`): consider
+every pair of a predicates from `xhat` and `yhat`. If the combination
+of the predicates is unsatisfiable, then we can ignore that case. If
+it's satisfiable, then for `xhat` and `yhat` to be equivalent, the
+actions on both sides must be equivalent. We can decide _that_
+equivalence using the Hopcroft-Karp algorithm (see `equivalent_words`
+in `src/word.ml`)
