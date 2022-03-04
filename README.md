@@ -292,7 +292,7 @@ case that these benchmarks will have the same relative performance.
 You can change the evaluation timeout by passing `-t SECONDS` or
 `--timeout SECONDS` to `run_eval`. In Docker on macOS 10.13 on the
 2014 MacBook Pro, we find a high timeout is necessary to get the last
-stage of evaluation to terminate:
+benchmark to terminate:
 
 ```ShellSession
 opam@6792c093ed91:~/kmt$ run_eval -t 3600
@@ -337,8 +337,8 @@ $ dune test                  # unit tests on regex word equivalence and KMT equi
 $ dune exec -- src/run_eval  # PLDI2022 eval
 ```
 
-On macOS, you a `brew install gmp python3 ; sudo mkdir -p
-/opt/local/lib` should replace the first line.
+On macOS, `brew install gmp python3 ; sudo mkdir -p
+/opt/local/lib` should replace the call to `apt-get`.
 
 If the above fails, the CI automation is a good guide for manual installation: see the `Dockerfile` and `.github/workflows/build.yml`.
 
@@ -414,7 +414,7 @@ let equivalent_nf (nx: nf) (ny: nf) : bool =
   equivalent_lunf xhat yhat
 ```
 
-Given normal forms `nx` and `ny`, we (a) compute locally unambiguous
+Given normal forms `nx` and `ny`, we first compute locally unambiguous
 forms `xhat` and `yhat`; we then check _those_ for equivalence.
 
 To generate locally unambiguous forms, suppose the normal form `nx` is
@@ -442,7 +442,7 @@ yhat =     b1 ;     b2 ; ... ;     bk ; (n1 + n2 + ... + nk)
      + not b1 ; not b2 ; ... ; not bk ; false
 ```
 
-We call this `hat`ted forms "locally unambiguous" because each possible test in `xhat` is syntactically unambiguous.
+We call these `hat`ted forms "locally unambiguous" because each possible test in `xhat` is syntactically unambiguous.
 
 Now we can compare `xhat` and `yhat` (in `equivalent_lunf`): consider
 every pair of a predicates from `xhat` and `yhat`. If the combination
@@ -450,4 +450,6 @@ of the predicates is unsatisfiable, then we can ignore that case. If
 it's satisfiable, then for `xhat` and `yhat` to be equivalent, the
 actions on both sides must be equivalent. We can decide _that_
 equivalence using the Hopcroft-Karp algorithm (see `equivalent_words`
-in `src/word.ml`)
+in `src/word.ml`).
+
+Congratulations, you read the whole thing! 😁
