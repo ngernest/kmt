@@ -1,10 +1,25 @@
 [![Main workflow](https://github.com/mgree/kmt/actions/workflows/build.yml/badge.svg)](https://github.com/mgree/kmt/actions/workflows/build.yml)
 
-An implementation of [Kleene algebra modulo theories](https://arxiv.org/abs/1707.02894) (KMT), a framework for deriving _concrete_ Kleene algebras with tests (KATs), an algebraic framework for While-like programs with decidable program equivalence.
+This repository implements [Kleene algebra modulo
+theories](https://arxiv.org/abs/1707.02894) (KMT), a framework for
+deriving _concrete_ Kleene algebras with tests (KATs), an algebraic
+framework for While-like programs with decidable program equivalence.
 
-More plainly: KMT is a framework for building simple programming languages with structured control (if, while, etc.) where we can algorithmically decide whether or not two programs are equivalent. You can use equivalence to verify programs. If `a` is a nice property to have after running your program, then if `p;a == p`, you know that `p` satisfies `a`. Kleene algebra with tests subsumes Hoare logic: if `a;p;~b == 0` then all runs starting from `a` either diverge or end with `b`, i.e., that equation corresponds to the partial correctness specification `{a} p {b}`.
+More plainly: KMT is a framework for building simple programming
+languages with structured control (if, while, etc.) where we can
+algorithmically decide whether or not two programs are equivalent. You
+can use equivalence to verify programs. If `a` is a nice property to
+have after running your program, then if `p;a == p`, you know that `p`
+satisfies `a`. Kleene algebra with tests subsumes Hoare logic: if
+`a;p;~b == 0` then all runs starting from `a` either diverge or end
+with `b`, i.e., that equation corresponds to the partial correctness
+specification `{a} p {b}`. While prior work on KAT often focuses on
+_abstract_ properties, we write programs over theories that assign
+_concrete_ meanings to primitive tests and actions.
 
-In addition to providing an OCaml library for defining KMTs over your own theories, we offer a command-line tool for testing equivalence in a variety of theories.
+In addition to providing an OCaml library for defining KMTs over your
+own theories, we offer a command-line tool for testing equivalence in
+a variety of pre-defined theories.
 
 # Getting Started Guide
 
@@ -19,7 +34,7 @@ $ docker build -t kmt .    # build KMT, run tests and evaluation
 If your `docker build` command exits with status 137, that indicates
 that the build ran out of memory (typically when building Z3). We find
 that 12GB of RAM is sufficient, but more may be necessary on your
-machine.
+machine. You might have to reconfigure Docker to have sufficient memory.
 
 Building the image will automatically run unit tests as well as the
 PLDI 2022 evaluation. When running the image, you can use the `kmt`
@@ -55,9 +70,8 @@ lunf time: 0.000010s
 2: { x=T }
 ```
 
-Note that `3ce9eaca9fb1` will be replaced by some appropriate hash for
-the generated Docker image. The `kmt` executable will be in
-`/home/opam_build/default/src/kmt`; this directory is on your path.
+Note that `b3043b7dca44` will be replaced by some new hash each time
+you run `docker run -it kmt`.
 
 Running `run_eval` inside the Docker container will reproduce the
 evaluation from our paper. You can run the regression tests by running
@@ -66,9 +80,12 @@ decision procedure) and `test_equivalence` (for KMT term
 equivalence). All of these steps are performed automatically during
 `docker build`.
 
+The source code for all of these is in the `src` directory; see
+`src/dune` for the build script.
+
 # How do I use the `kmt` executable?
 
-The default way of using the `kmt` executable is to give it a theory (here `--boolean`) and 2 or more KMT programs in that theory. It will give you the equivalence classes of thos terms. The `-v` flag is useful when many terms are given:
+The default way of using the `kmt` executable is to give it a theory (here `--boolean`) and 2 or more KMT programs in that theory. It will give you the equivalence classes of those terms. The `-v` flag is useful when many terms are given:
 
 ```ShellSession
 opam@3ce9eaca9fb1:~/kmt$ kmt -v --boolean 'x=T' 'x=F' 'x=T + x=F' 'x=T + x=F;x=T'
@@ -102,16 +119,19 @@ The last three lines identify the three equivalence classes in terms
 of their normal forms.
 
 If you don't specify a theory, the default will be the theory of
-booleans. Run `kmt --help` for command-line help in a manpage-like
-format.
+booleans.
+
+If you give just one term, `kmt` will normalize it for you.
+
+Run `kmt --help` for command-line help in a manpage-like format.
 
 ## What is the syntax?
 
 A Kleene algebra with tests breaks syntax into two parts: tests (or prediates) and actions. Actions are in some sense the 'top level', as every test is an action.
 
-We use the following syntax, where `a` and `b` are tests, `p` and `q`
+We use the following syntax, where `a` and `b` are tests and `p` and `q`
 are actions. The following is the core Kleene algebra notation;
-individual theories can introduce their own notations.
+individual theories introduce their own notations.
 
 | Tests   | Interpretation   |
 | :-----: | :--------------- |
