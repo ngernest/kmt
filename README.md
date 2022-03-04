@@ -129,9 +129,9 @@ Run `kmt --help` for command-line help in a manpage-like format.
 
 A Kleene algebra with tests breaks syntax into two parts: tests (or prediates) and actions. Actions are in some sense the 'top level', as every test is an action.
 
-We use the following syntax, where `a` and `b` are tests and `p` and `q`
-are actions. The following is the core Kleene algebra notation;
-individual theories introduce their own notations.
+We use the following syntax, where `a` and `b` are tests and `p` and
+`q` are actions. The following is the core KAT notation; individual
+theories introduce their own notations.
 
 | Tests   | Interpretation   |
 | :-----: | :--------------- |
@@ -209,10 +209,11 @@ theories](#what-do-I-have-to-provide-to-write-my-own-theory) to the
 
 # Step-by-Step
 
-The paper makes several claims about the implementation.
+The paper makes three core claims about the implementation.
 
  1. It is extensible.
- 2. The benchmarks according to our evaluation in Section 5.
+ 2. We have implemented some optimizations.
+ 3. The benchmarks according to our evaluation in Section 5.
  
 ## How can I tell that the implementation is extensible?
 
@@ -240,6 +241,24 @@ of a 'fast' path in the `satisfiable` function, where we discharge
 simple queries (with just conjunction and negation of theory
 predicates, but no disjunction---see `can_use_fast_solver`) without
 calling Z3 at all.
+
+## What optimizations are implemented?
+
+All KAT terms are hashconsed. The library for that is in
+`src/hashcons.ml`; KAT terms are hashconsed using `'a pred`/`'a
+pred_hons` and `('a, 'p) kat` and `('a, 'p) kat_hons` in
+`src/kat.ml`. We use smart constructors extensively in the `KAT`
+module (see `not`, `ppar`, `pseq`, etc.).
+
+When we check word equivalence of actions in `src/decide.ml` (see
+`same_actions`), we use the `equivalent_words` function in
+`src/word.ml`. That method uses the Brzozowski derivative to generate
+word automata lazily during checking (see `derivative` and `accepting` in that
+`src/word.ml`).
+
+Finally, several theories implement custom satisfiability checkers
+that don't merely defer to Z3: `boolean.ml`, `incnat.ml`, and
+`addition.ml`.
 
 ## How do I reproduce the paper's evaluation?
 
