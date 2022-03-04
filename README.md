@@ -1,4 +1,5 @@
 [![Main workflow](https://github.com/mgree/kmt/actions/workflows/build.yml/badge.svg)](https://github.com/mgree/kmt/actions/workflows/build.yml)
+[![DOI](https://zenodo.org/badge/149648258.svg)](https://zenodo.org/badge/latestdoi/149648258)
 
 This repository implements [Kleene algebra modulo
 theories](https://arxiv.org/abs/1707.02894) (KMT), a framework for
