@@ -46,9 +46,9 @@ module Decide (T : THEORY) = struct
 
   let rec flatten (a: K.Test.t) : K.Test.t PSet.t =
     match a.node with
-    | Theory _ | PPar _ | One | Not _ -> PSet.singleton ~cmp:compare_test a
+    | Theory _ | PPar _ | One | Zero | Not _ -> PSet.singleton ~cmp:compare_test a
     | PSeq (b, c) -> PSet.union (flatten b) (flatten c)
-    | Placeholder _ | Zero -> failwith "impossible"
+    | Placeholder _ -> failwith "impossible flatten of placeholder"
 
   let rec size (a: K.Test.t) =
     match a.node with
@@ -56,7 +56,7 @@ module Decide (T : THEORY) = struct
     | Theory _ -> 1
     | PPar (b, c) | PSeq (b, c) -> 1 + size b + size c
     | Not b -> 1 + size b
-    | Placeholder _ -> failwith "impossible"
+    | Placeholder _ -> failwith "impossible size of placeholder"
 
   let seq_all (x: K.Test.t PSet.t) =
     PSet.fold (fun test acc -> K.pseq test acc) x (K.one ())
@@ -94,7 +94,7 @@ module Decide (T : THEORY) = struct
           | Some (_b, sizeb) -> if size > sizeb then Some (a, size) else acc )
         None choices
     in
-    match pick with None -> failwith "impossible" | Some (a, _) -> a
+    match pick with None -> failwith "impossible pick_mt of empty" | Some (a, _) -> a
 
   let zero = K.zero ()
 
@@ -206,7 +206,7 @@ module Decide (T : THEORY) = struct
             let z = push_back_j (i + 1) x y in
             let y = stitch a y in
             nf_union y z
-      | _, Placeholder _ -> failwith "impossible"
+      | _, Placeholder _ -> failwith "impossible pushback_dot of placeholder"
       | Pred b, _ -> singleton (K.pseq b a, K.pred one)
     in
     Log.debug (fun m -> m "%sresult:%s" (spaces i) (show_nf ret)) ;
@@ -271,16 +271,30 @@ module Decide (T : THEORY) = struct
                 let z = stitch a z in
                 PSet.add (one, K.pred one) z
             | false -> (* Denest *)
+              begin
+                Log.debug (fun m -> m "%sDENEST %s!" (spaces i) (show_nf x));
                 let x' = y in
                 let t, u = split a x' in
-                let y = push_back_star (i + 1) (nf_union t u) in
+                let stitched = nf_union t u in
+                Log.debug (fun m -> m "%sDENEST %s calls PB^* %s" (spaces i) (show_nf x) (show_nf stitched));
+                let y = push_back_star (i + 1) stitched in
+                Log.debug (fun m -> m "%sDENEST %s calls PB^J %s;%s" (spaces i) (show_nf x) (show_nf y) (show_nf x));
                 let z = push_back_j (i + 1) y x in
                 PSet.add (one, K.pred one) (stitch a z)
+              end
         else (* Denest *)
+        begin
+          Log.debug (fun m -> m "%sDENEST %s!" (spaces i) (show_nf x));
+          Log.debug (fun m -> m "%sDENEST %s calls PB^* %s" (spaces i) (show_nf x) (show_nf y));
           let y' = push_back_star (i + 1) y in
+          Log.debug (fun m -> m "%sDENEST %s calls PB^J %s" (spaces i) (show_nf x) (show_nf y'));
           let x' = push_back_j (i + 1) x y' in
-          let z = push_back_star (i + 1) (stitch a x') in
+          let stitched = stitch a x' in
+          Log.debug (fun m -> m "%sDENEST %s calls PB^* %s" (spaces i) (show_nf x) (show_nf stitched));
+          let z = push_back_star (i + 1) stitched in
+          Log.debug (fun m -> m "%sDENEST %s calls PB^J %s;%s" (spaces i) (show_nf x) (show_nf y') (show_nf z));
           push_back_j (i + 1) y' z
+        end
     in
     Log.debug (fun m -> m "%sresult: %s" (spaces i) (show_nf ret)) ;
     ret
