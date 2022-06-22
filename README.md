@@ -26,7 +26,8 @@ a variety of pre-defined theories.
 
 ## How do I build it?
 
-You can build a Docker container from the root of the repo:
+KMT is packaged as an [OPAM](https://opam.ocaml.org/) library. But you
+can also build a Docker container from the root of the repo:
 
 ```ShellSession
 $ docker build -t kmt .    # build KMT, run tests and evaluation
@@ -206,7 +207,7 @@ We have several other theories built in:
 
 You can [add new
 theories](#what-do-I-have-to-provide-to-write-my-own-theory) to the
-`kmt` tool by updating the `modes` in `src/main.ml`.
+`kmt` tool by updating the `modes` in `src/kmt.ml`.
 
 # Step-by-Step
 
@@ -268,7 +269,7 @@ evaluation from Section 5, using a 30s timeout. Here is sample output
 (your hash and exact times will differ):
 
 ```
-Step 14/18 : RUN opam exec -- dune exec -- src/run_eval
+Step 14/18 : RUN opam exec -- dune exec -- src/kmt_eval
  ---> Running in f609aca22e92
 test                      time (seconds)
                              30s timeout
@@ -291,12 +292,12 @@ local installation](#building-locally). It _should_, however, be the
 case that these benchmarks will have the same relative performance.
 
 You can change the evaluation timeout by passing `-t SECONDS` or
-`--timeout SECONDS` to `run_eval`. In Docker on macOS 10.13 on the
+`--timeout SECONDS` to `kmt_eval`. In Docker on macOS 10.13 on the
 2014 MacBook Pro, we find a high timeout is necessary to get the last
 benchmark to terminate:
 
 ```ShellSession
-opam@6792c093ed91:~/kmt$ run_eval -t 3600
+opam@6792c093ed91:~/kmt$ kmt_eval -t 3600
 test                      time (seconds)
                            3600s timeout
 ----------------------------------------
@@ -335,7 +336,7 @@ $ opam install ocamlfind ppx_deriving batteries ANSIterminal fmt alcotest cmdlin
 $ eval $(opam env)
 $ dune build -- src/kmt      # build the CLI
 $ dune test                  # unit tests on regex word equivalence and KMT equivalence
-$ dune exec -- src/run_eval  # PLDI2022 eval
+$ dune exec -- src/kmt_eval  # PLDI2022 eval
 ```
 
 On macOS, `brew install gmp python3 ; sudo mkdir -p

@@ -39,20 +39,13 @@ jobs:
             exit 1
           fi          
 
-      - name: OCaml dependencies
-        run: opam install -y ocamlfind ppx_deriving batteries ANSIterminal fmt alcotest cmdliner logs zarith z3 dune
-        
-      - name: Build kmt and other executables
-        run: opam exec -- dune build --display short -- src/kmt src/test_word src/test_equivalence src/run_eval
-
-      - name: Word equivalence tests
-        run: opam exec -- dune exec -- src/test_word
-
-      - name: KMT equivalence tests
-        run: opam exec -- dune exec -- src/test_equivalence
-
+      - name: Install via OPAM
+        run: |
+            opam install -t .
+            eval $(opam env)
+         
       - name: KMT evaluation
-        run: opam exec -- dune exec -- src/run_eval
+        run: opam exec -- kmt_eval
 
   docker:
     runs-on: ubuntu-latest

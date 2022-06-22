@@ -1,31 +1,15 @@
-(rule
- (target kmt)
- (action (copy %{exe:main.exe} %{target})))
-
-(rule
- (target run_eval)
- (action (copy %{exe:run_eval.exe} %{target})))
-
-(rule
- (target test_equivalence)
- (action (copy %{exe:test_equivalence.exe} %{target})))
-
-(rule
- (target test_word)
- (action (copy %{exe:test_word.exe} %{target})))
-
-; actual build rules
-
 (executable
- (name main)
- (modules main)
+ (name kmt)
+ (public_name kmt)
+ (modules kmt)
  (libraries z3 kmt fmt fmt.cli fmt.tty logs logs.fmt logs.cli cmdliner)
  (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord))             
  (flags -thread (-cclib -lstdc++)))
 
 (executable
- (name run_eval)
- (modules run_eval)
+ (name kmt_eval)
+ (public_name kmt_eval)
+ (modules kmt_eval)
  (libraries z3 kmt ANSITerminal fmt fmt.cli fmt.tty logs logs.fmt logs.cli cmdliner)
  (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord))             
  (flags -thread (-cclib -lstdc++)))
@@ -47,7 +31,7 @@
 (library
  (name kmt)
  (wrapped false)
- (modules :standard \ main test_equivalence test_word run_eval)
+ (modules (:standard \ kmt test_equivalence test_word kmt_eval))
  (preprocess (pps ppx_deriving.show ppx_deriving.eq ppx_deriving.ord))             
  (libraries batteries str unix ANSITerminal fmt fmt.cli fmt.tty
             alcotest logs logs.fmt logs.cli cmdliner z3))
