@@ -353,8 +353,6 @@ The source code in `src/incnat.ml` is a nice example. You have to provide:
     primitives; return `Left` for tests and `Right` for actions
   - a `push_back` operation that calculates weakest preconditions on a
     pair of a primitive and a predicate
-  - a `subterms` function that captures which predicates could show up
-    in `push_back` of a given predicate
   - a `satisfiable` function to test whether a predicate is satisfiable
 
 To use the Z3 backend, your theory can describe how it extracts to Z3 using functions `variable`, `variable_test`, `create_z3_var`, and `theory_to_z3_expr`.

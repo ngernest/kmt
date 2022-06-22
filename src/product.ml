@@ -84,11 +84,6 @@ module Product(T1 : THEORY) (T2: THEORY) : (THEORY with type A.t = (T1.A.t, T2.A
         set 
         (BatSet.PSet.create K.Test.compare)
 
-    let subterms (a : K.A.t) = 
-      match a with 
-      | Left x -> convert_from_left (T1.subterms x)
-      | Right y -> convert_from_right (T2.subterms y)
-
     let push_back p a =
       match p,a with 
       | Left p, Left a -> convert_from_left (T1.push_back p a)

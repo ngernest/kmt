@@ -70,8 +70,6 @@ module rec Network : (THEORY with type A.t = field_val and type P.t = field_val)
     | "<-", [EId s1; EId s2] -> Right (field_val_of_string s1 (int_of_string s2))
     | _, _ -> failwith ("Cannot create theory object from (" ^ name ^ ") and parameters")
 
-  let subterms a = PSet.singleton ~cmp:Test.compare (K.theory a)
-
   let push_back p a =
     match p, a with 
     | Src i, Src j 

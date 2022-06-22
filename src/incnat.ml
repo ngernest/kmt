@@ -75,17 +75,10 @@ module rec IncNat : THEORY with type A.t = a and type P.t = p = struct
     | _ -> PSet.singleton ~cmp:K.Test.compare (K.theory a)
 
 
-  let rec subterms x =
-    match x with
-    | Gt (_, 0) -> PSet.singleton ~cmp:K.Test.compare (K.theory x)
-    | Gt (v, i) -> PSet.add (K.theory x) (subterms (Gt (v, i - 1)))
-
-
   let simplify_and a b =
     match (a, b) with
     | Gt (x, v1), Gt (y, v2) when x = y -> Some (K.theory (Gt (x, max v1 v2)))
     | _, _ -> None
-
 
   let simplify_not _a = None
 

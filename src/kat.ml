@@ -59,7 +59,6 @@ module type KAT_IMPL = sig
   (* TODO MMG 2020-02-28 predicates for zero/one testing *)
     
   (* Utility functions *)
-  val subterms : Test.t -> Test.t BatSet.PSet.t
   val test_of_expr : Syntax.expr -> Test.t
   val term_of_expr : Syntax.expr -> Term.t
   val parse : string -> Term.t
@@ -82,7 +81,6 @@ module type THEORY = sig
        
   val parse : string -> expr list -> (A.t, P.t) either
   val push_back : P.t -> A.t -> Test.t BatSet.PSet.t
-  val subterms : A.t -> Test.t BatSet.PSet.t
   val simplify_not : A.t -> Test.t option
   val simplify_and : A.t -> A.t -> Test.t option
   val simplify_or : A.t -> A.t -> Test.t option
@@ -436,19 +434,6 @@ module KAT (T : THEORY) : KAT_IMPL with module A = T.A and module P = T.P = stru
   let implies (a: Test.t) (b: Test.t) : bool =
     let x = pseq a (not b) in
     Stdlib.not (satisfiable x)
-
-
-  let rec subterms (x: Test.t) : Test.t PSet.t =
-    match x.node with
-    | Zero -> PSet.create Test.compare
-    | One -> PSet.singleton ~cmp:Test.compare (one ())
-    | Theory a -> PSet.union (T.subterms a) (subterms (one ()))
-    | PPar (a, b) | PSeq (a, b) ->
-        let l = subterms a in
-        let r = subterms b in
-        PSet.add x (PSet.union l r)
-    | Not a -> PSet.add x (subterms a)
-    | Placeholder _ -> failwith "Unreachable: subterms"
 
 
   let rec test_of_exprs name es =

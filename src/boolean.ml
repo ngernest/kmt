@@ -76,9 +76,6 @@ module rec Boolean : THEORY with type A.t = a and type P.t = p = struct
         PSet.singleton ~cmp:K.Test.compare (K.one ())
     | _ -> PSet.singleton ~cmp:K.Test.compare (K.theory a)
 
-
-  let subterms x = PSet.singleton ~cmp:K.Test.compare (K.theory x)
-
   let simplify_and (Bool (x, v1)) (Bool (y, v2)) =
     if x = y && v1 <> v2 then Some (K.zero ()) else None
 
