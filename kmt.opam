@@ -21,6 +21,6 @@ depends: [
 build: ["dune" "build" "-p" name "-j" jobs]
 dev-repo: "git+https:///github.com/mgree/kmt"
 url {
-  src: "https://github.com/mgree/kmt/archive/v0.1.tar.gz"
+  src: "https://github.com/mgree/kmt/archive/refs/tags/0.1.tar.gz"
 }
 
