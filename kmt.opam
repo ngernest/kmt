@@ -11,9 +11,9 @@ depends: [
   "batteries" {>= "3.5"}
   "ANSITerminal" {>= "0.8"}
   "fmt" {>= "0.9"}
-  "alcotest" {>= "1.4"}
+  "alcotest" {>= "1.5"}
   "logs" {>= "0.7"}
-  "cmdliner" {>= "1.0.4"}
+  "cmdliner" {>= "1.1"}
   "ppx_deriving" {>= "5.2"}
   "dune" {>= "3.0"}
 ]
