@@ -26,8 +26,13 @@ a variety of pre-defined theories.
 
 ## How do I build it?
 
-KMT is packaged as an [OPAM](https://opam.ocaml.org/) library. But you
-can also build a Docker container from the root of the repo:
+KMT is [available on OPAM](https://opam.ocaml.org/packages/kmt/); if you have OCaml and [OPAM](https://opam.ocaml.org/) installed, œyou should be able to simply run:
+
+```ShellSession
+$ opam install kmt
+```
+
+But you can also build a Docker container from the root of the repo:
 
 ```ShellSession
 $ docker build -t kmt .    # build KMT, run tests and evaluation
