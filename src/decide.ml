@@ -270,15 +270,15 @@ module Decide (T : THEORY) = struct
                 let z = push_back_j (i + 1) y' x in
                 let z = stitch a z in
                 PSet.add (one, K.pred one) z
-            | false -> (* Denest *)
+            | false -> (* Expand *)
               begin
-                Log.debug (fun m -> m "%sDENEST %s!" (spaces i) (show_nf x));
+                Log.debug (fun m -> m "%sEXPAND %s!" (spaces i) (show_nf x));
                 let x' = y in
                 let t, u = split a x' in
                 let stitched = nf_union t u in
-                Log.debug (fun m -> m "%sDENEST %s calls PB^* %s" (spaces i) (show_nf x) (show_nf stitched));
+                Log.debug (fun m -> m "%sEXPAND %s calls PB^* %s" (spaces i) (show_nf x) (show_nf stitched));
                 let y = push_back_star (i + 1) stitched in
-                Log.debug (fun m -> m "%sDENEST %s calls PB^J %s;%s" (spaces i) (show_nf x) (show_nf y) (show_nf x));
+                Log.debug (fun m -> m "%sEXPAND %s calls PB^J %s;%s" (spaces i) (show_nf x) (show_nf y) (show_nf x));
                 let z = push_back_j (i + 1) y x in
                 PSet.add (one, K.pred one) (stitch a z)
               end
