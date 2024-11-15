@@ -63,7 +63,8 @@ module rec Network : (THEORY with type A.t = field_val and type P.t = field_val)
   end
 
   let name () = "network"
-                                                      
+     
+  (* Lightweight extension to parser *)
   let parse name es =
     match name, es with
     | "=", [EId s1; EId s2] -> Left (field_val_of_string s1 (int_of_string s2))
@@ -92,7 +93,8 @@ module rec Network : (THEORY with type A.t = field_val and type P.t = field_val)
 
   let variable_test x = get_field x
 
-  let satisfiable _x = failwith "network sat undefined"
+  let satisfiable (x : Test.t) : bool = 
+    K.z3_satisfiable x 
 
   let theory_to_z3_expr _f _ctx _map = failwith "network theory_to_z3_expr undefined"
   
