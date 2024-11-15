@@ -70,15 +70,16 @@ module rec Network : (THEORY with type A.t = field_val and type P.t = field_val)
     | "<-", [EId s1; EId s2] -> Right (field_val_of_string s1 (int_of_string s2))
     | _, _ -> failwith ("Cannot create theory object from (" ^ name ^ ") and parameters")
 
-  let push_back p a =
+  (** Computes the weakest precondition of a test [a] and an action [p] *)
+  let push_back (p : field_val) (a : field_val) : Test.t PSet.t =
     match p, a with 
     | Src i, Src j 
     | Dst i, Dst j 
     | Pt i, Pt j 
     | Sw i, Sw j -> 
         if i = j 
-        then PSet.singleton ~cmp:K.Test.compare (K.one()) 
-        else PSet.create K.Test.compare
+        then PSet.singleton ~cmp:K.Test.compare (K.one ()) 
+        else PSet.create K.Test.compare 
     | _, _ -> PSet.singleton ~cmp:K.Test.compare (K.theory a)
 
   let merge _x y = y
